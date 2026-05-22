@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ONEBOX API — RC Celta Integration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:          #0d1117;
+      --surface:     #161b22;
+      --surface-2:   #1e2430;
+      --border:      #30363d;
+      --text:        #e6edf3;
+      --text-muted:  #8b949e;
+      --green:       #3fb950;
+      --green-bg:    #0d2818;
+      --orange:      #f0883e;
+      --orange-bg:   #2b1b0a;
+      --blue:        #58a6ff;
+      --purple:      #bc8cff;
+      --yellow:      #e3b341;
+      --red:         #f85149;
+      --celeste:     #6cace4;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── Sidebar ── */
+    nav {
+      width: 240px;
+      min-width: 240px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 2rem 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .nav-logo {
+      padding: 0 1.5rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+
+    .nav-logo .brand {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--celeste);
+    }
+
+    .nav-logo .title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 0.25rem;
+    }
+
+    .nav-section-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 0 1.5rem 0.5rem;
+    }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 1.5rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: color 0.15s, background 0.15s;
+      border-left: 2px solid transparent;
+    }
+
+    nav a:hover, nav a.active {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+      border-left-color: var(--celeste);
+    }
+
+    .badge-post { background: var(--orange-bg); color: var(--orange); font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; font-weight: 500; padding: 0.15rem 0.4rem; border-radius: 3px; }
+    .badge-get  { background: var(--green-bg);  color: var(--green);  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; font-weight: 500; padding: 0.15rem 0.4rem; border-radius: 3px; }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      overflow-x: hidden;
+    }
+
+    .page-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 2.5rem 3rem;
+    }
+
+    .page-header h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .page-header p  { color: var(--text-muted); max-width: 560px; }
+
+    .meta-row {
+      display: flex;
+      gap: 2rem;
+      margin-top: 1.25rem;
+    }
+
+    .meta-item { display: flex; flex-direction: column; gap: 0.2rem; }
+    .meta-item .label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+    .meta-item .value { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--celeste); }
+
+    /* ── Endpoint sections ── */
+    .endpoint {
+      border-bottom: 1px solid var(--border);
+      padding: 3rem;
+    }
+
+    .endpoint-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .endpoint-number {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      background: var(--celeste);
+      color: #0d1117;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+      margin-top: 2px;
+    }
+
+    .endpoint-meta h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .endpoint-meta p  { color: var(--text-muted); font-size: 0.875rem; max-width: 520px; }
+
+    .url-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.825rem;
+    }
+
+    .method-badge {
+      font-weight: 600;
+      font-size: 0.7rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    .method-post { background: var(--orange-bg); color: var(--orange); }
+    .method-get  { background: var(--green-bg);  color: var(--green);  }
+
+    .url-text { color: var(--text); }
+    .url-base { color: var(--text-muted); }
+    .url-path { color: var(--blue); }
+    .url-param { color: var(--purple); }
+
+    .status-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+    }
+    .status-200 { background: var(--green-bg); color: var(--green); }
+
+    /* ── Side-by-side panels ── */
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 1rem;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+    }
+
+    .panel-header .right { display: flex; align-items: center; gap: 0.5rem; }
+
+    .panel-body {
+      padding: 1rem;
+      overflow-x: auto;
+    }
+
+    /* ── Code / JSON ── */
+    pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.65;
+      white-space: pre;
+      tab-size: 2;
+    }
+
+    .j-key    { color: #79c0ff; }
+    .j-str    { color: #a5d6ff; }
+    .j-num    { color: #f2cc60; }
+    .j-bool   { color: #ff7b72; }
+    .j-null   { color: #8b949e; }
+    .j-brace  { color: #8b949e; }
+    .j-secret { color: var(--red); font-style: italic; }
+    .j-token  { color: #8b949e; font-style: italic; }
+
+    /* ── Headers table ── */
+    .headers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .header-row {
+      display: flex;
+      gap: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      align-items: baseline;
+    }
+
+    .header-name  { color: var(--blue); min-width: 180px; }
+    .header-value { color: var(--text-muted); }
+    .header-value.token { color: var(--text-muted); font-style: italic; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 0.75rem 0; }
+
+    .section-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<nav>
+  <div class="nav-logo">
+    <div class="brand">RC Celta · Dev</div>
+    <div class="title">ONEBOX API</div>
+  </div>
+  <div class="nav-section-label">Endpoints</div>
+  <a href="#auth" class="active">
+    <span class="badge-post">POST</span> Authentication
+  </a>
+  <a href="#sessions">
+    <span class="badge-get">GET</span> Sessions
+  </a>
+  <a href="#availability">
+    <span class="badge-get">GET</span> Availability
+  </a>
+</nav>
+
+<!-- ── Main content ── -->
+<main>
+
+  <div class="page-header">
+    <h1>ONEBOX API — Integration Reference</h1>
+    <p>Live responses captured from the ONEBOX staging environment. Secrets are redacted — safe to share.</p>
+    <div class="meta-row">
+      <div class="meta-item">
+        <span class="label">Base URL</span>
+        <span class="value">https://api.oneboxtds.net</span>
+      </div>
+      <div class="meta-item">
+        <span class="label">Channel ID</span>
+        <span class="value">2287</span>
+      </div>
+      <div class="meta-item">
+        <span class="label">Client ID</span>
+        <span class="value">seller-channel-client</span>
+      </div>
+      <div class="meta-item">
+        <span class="label">Environment</span>
+        <span class="value">staging (tds)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 1. Authentication ── -->
+  <section class="endpoint" id="auth">
+    <div class="endpoint-header">
+      <div class="endpoint-number">1</div>
+      <div class="endpoint-meta">
+        <h2>Authentication</h2>
+        <p>Exchange your client credentials for a Bearer token. The token is valid for 12 hours (43 200 s) and must be included in all subsequent requests.</p>
+      </div>
+    </div>
+
+    <div class="url-bar">
+      <span class="method-badge method-post">POST</span>
+      <span class="url-text">
+        <span class="url-base">https://api.oneboxtds.net</span><span class="url-path">/oauth/token</span>
+      </span>
+    </div>
+
+    <div class="panels">
+      <!-- Request -->
+      <div class="panel">
+        <div class="panel-header"><span>Request</span></div>
+        <div class="panel-body">
+          <div class="section-label">Headers</div>
+          <div class="headers-list">
+            <div class="header-row">
+              <span class="header-name">Content-Type</span>
+              <span class="header-value">application/x-www-form-urlencoded</span>
+            </div>
+          </div>
+          <hr class="divider" />
+          <div class="section-label">Body (form-encoded)</div>
+          <pre><span class="j-key">grant_type</span>    = <span class="j-str">client_credentials</span>
+<span class="j-key">channel_id</span>    = <span class="j-num">2287</span>
+<span class="j-key">client_id</span>     = <span class="j-str">seller-channel-client</span>
+<span class="j-key">client_secret</span> = <span class="j-secret">••••••••••••••••••••••••••••••••</span></pre>
+        </div>
+      </div>
+
+      <!-- Response -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>Response</span>
+          <div class="right"><span class="status-badge status-200">200 OK</span></div>
+        </div>
+        <div class="panel-body">
+          <pre><span class="j-brace">{</span>
+  <span class="j-key">"access_token"</span>: <span class="j-token">"eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp…  [JWT — redacted]"</span>,
+  <span class="j-key">"token_type"</span>:   <span class="j-str">"bearer"</span>,
+  <span class="j-key">"expires_in"</span>:   <span class="j-num">43200</span>,
+  <span class="j-key">"scope"</span>: <span class="j-str">"api-channels-all api-distribution-all
+           api-catalog-all api-external-all
+           api-gateway api-customers-mgmt-all
+           api-orders-mgmt-all"</span>,
+  <span class="j-key">"jti"</span>: <span class="j-str">"2pC58C36QqoUkwExWxyiuxL-Hmk"</span>
+<span class="j-brace">}</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 2. Sessions ── -->
+  <section class="endpoint" id="sessions">
+    <div class="endpoint-header">
+      <div class="endpoint-number">2</div>
+      <div class="endpoint-meta">
+        <h2>Get Sessions</h2>
+        <p>Returns the paginated list of sessions (matches) available on this channel. The live channel currently has <strong>21 sessions</strong>. Each session includes event info, venue, date window, price range, and per-zone availability.</p>
+      </div>
+    </div>
+
+    <div class="url-bar">
+      <span class="method-badge method-get">GET</span>
+      <span class="url-text">
+        <span class="url-base">https://api.oneboxtds.net</span><span class="url-path">/catalog-api/v1/sessions</span>
+      </span>
+    </div>
+
+    <div class="panels">
+      <!-- Request -->
+      <div class="panel">
+        <div class="panel-header"><span>Request</span></div>
+        <div class="panel-body">
+          <div class="section-label">Headers</div>
+          <div class="headers-list">
+            <div class="header-row">
+              <span class="header-name">Authorization</span>
+              <span class="header-value token">Bearer &lt;access_token&gt;</span>
+            </div>
+          </div>
+          <hr class="divider" />
+          <div class="section-label">Query params (optional)</div>
+          <div class="headers-list">
+            <div class="header-row">
+              <span class="header-name">limit</span>
+              <span class="header-value">100 <span style="color:var(--text-muted)">(default)</span></span>
+            </div>
+            <div class="header-row">
+              <span class="header-name">offset</span>
+              <span class="header-value">0 <span style="color:var(--text-muted)">(default)</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Response -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>Response</span>
+          <div class="right"><span class="status-badge status-200">200 OK</span></div>
+        </div>
+        <div class="panel-body">
+          <pre><span class="j-brace">{</span>
+  <span class="j-key">"metadata"</span>: <span class="j-brace">{</span>
+    <span class="j-key">"limit"</span>:  <span class="j-num">100</span>,
+    <span class="j-key">"total"</span>:  <span class="j-num">21</span>,
+    <span class="j-key">"offset"</span>: <span class="j-num">0</span>
+  <span class="j-brace">}</span>,
+  <span class="j-key">"data"</span>: <span class="j-brace">[</span>
+    <span class="j-brace">{</span>
+      <span class="j-key">"id"</span>:   <span class="j-num">240895</span>,
+      <span class="j-key">"name"</span>: <span class="j-str">"NUMERADO"</span>,
+      <span class="j-key">"type"</span>: <span class="j-str">"SESSION"</span>,
+      <span class="j-key">"event"</span>: <span class="j-brace">{</span>
+        <span class="j-key">"id"</span>:   <span class="j-num">4587</span>,
+        <span class="j-key">"name"</span>: <span class="j-str">"* API NUMBERED EVENT"</span>
+      <span class="j-brace">}</span>,
+      <span class="j-key">"venue"</span>: <span class="j-brace">{</span>
+        <span class="j-key">"id"</span>:   <span class="j-num">14</span>,
+        <span class="j-key">"name"</span>: <span class="j-str">"Estadio Saprissa"</span>
+      <span class="j-brace">}</span>,
+      <span class="j-key">"date"</span>: <span class="j-brace">{</span>
+        <span class="j-key">"start"</span>:      <span class="j-str">"2020-02-12T21:00:00+01:00"</span>,
+        <span class="j-key">"sale_start"</span>: <span class="j-str">"2019-05-10T10:00:00+02:00"</span>,
+        <span class="j-key">"sale_end"</span>:   <span class="j-str">"2027-02-06T21:00:00+01:00"</span>
+      <span class="j-brace">}</span>,
+      <span class="j-key">"price"</span>: <span class="j-brace">{</span>
+        <span class="j-key">"min"</span>: <span class="j-brace">{</span> <span class="j-key">"value"</span>: <span class="j-num">10</span> <span class="j-brace">}</span>,
+        <span class="j-key">"max"</span>: <span class="j-brace">{</span> <span class="j-key">"value"</span>: <span class="j-num">50</span> <span class="j-brace">}</span>
+      <span class="j-brace">}</span>,
+      <span class="j-key">"for_sale"</span>:  <span class="j-bool">true</span>,
+      <span class="j-key">"on_sale"</span>:   <span class="j-bool">true</span>,
+      <span class="j-key">"sold_out"</span>:  <span class="j-bool">false</span>
+    <span class="j-brace">}</span>,
+    <span class="j-brace">{ </span><span class="j-token">/* … 20 more sessions */ </span><span class="j-brace">}</span>
+  <span class="j-brace">]</span>
+<span class="j-brace">}</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 3. Availability ── -->
+  <section class="endpoint" id="availability">
+    <div class="endpoint-header">
+      <div class="endpoint-number">3</div>
+      <div class="endpoint-meta">
+        <h2>Get Availability</h2>
+        <p>Returns seat availability per price-type zone and individual sector for a given session. The example below uses session <code style="font-family:'JetBrains Mono',monospace;color:var(--purple);font-size:0.8rem">240895</code>. Total capacity: <strong>14 786 seats</strong>, available: <strong>14 372</strong>.</p>
+      </div>
+    </div>
+
+    <div class="url-bar">
+      <span class="method-badge method-get">GET</span>
+      <span class="url-text">
+        <span class="url-base">https://api.oneboxtds.net</span><span class="url-path">/catalog-api/v1/sessions/</span><span class="url-param">{sessionId}</span><span class="url-path">/availability</span>
+      </span>
+    </div>
+
+    <div class="panels">
+      <!-- Request -->
+      <div class="panel">
+        <div class="panel-header"><span>Request</span></div>
+        <div class="panel-body">
+          <div class="section-label">Headers</div>
+          <div class="headers-list">
+            <div class="header-row">
+              <span class="header-name">Authorization</span>
+              <span class="header-value token">Bearer &lt;access_token&gt;</span>
+            </div>
+          </div>
+          <hr class="divider" />
+          <div class="section-label">Path params</div>
+          <div class="headers-list">
+            <div class="header-row">
+              <span class="header-name">sessionId</span>
+              <span class="header-value"><span style="color:var(--purple)">240895</span> <span style="color:var(--text-muted)">(integer)</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Response -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>Response</span>
+          <div class="right"><span class="status-badge status-200">200 OK</span></div>
+        </div>
+        <div class="panel-body">
+          <pre><span class="j-brace">{</span>
+  <span class="j-key">"id"</span>:   <span class="j-num">240895</span>,
+  <span class="j-key">"name"</span>: <span class="j-str">"NUMERADO"</span>,
+  <span class="j-key">"availability"</span>: <span class="j-brace">{</span>
+    <span class="j-key">"type"</span>:      <span class="j-str">"BOUNDED"</span>,
+    <span class="j-key">"total"</span>:     <span class="j-num">14786</span>,
+    <span class="j-key">"available"</span>: <span class="j-num">14372</span>
+  <span class="j-brace">}</span>,
+  <span class="j-key">"price_types"</span>: <span class="j-brace">[</span>
+    <span class="j-brace">{</span>
+      <span class="j-key">"id"</span>: <span class="j-num">32713</span>, <span class="j-key">"name"</span>: <span class="j-str">"PISTA"</span>,
+      <span class="j-key">"availability"</span>: <span class="j-brace">{</span> <span class="j-key">"total"</span>: <span class="j-num">290</span>, <span class="j-key">"available"</span>: <span class="j-num">199</span> <span class="j-brace">}</span>,
+      <span class="j-key">"ui_settings"</span>: <span class="j-brace">{</span> <span class="j-key">"color"</span>: <span class="j-str">"#9E4500"</span> <span class="j-brace">}</span>,
+      <span class="j-key">"code"</span>: <span class="j-str">"ZP1"</span>
+    <span class="j-brace">}</span>,
+    <span class="j-brace">{</span>
+      <span class="j-key">"id"</span>: <span class="j-num">32714</span>, <span class="j-key">"name"</span>: <span class="j-str">"VIP"</span>,
+      <span class="j-key">"availability"</span>: <span class="j-brace">{</span> <span class="j-key">"total"</span>: <span class="j-num">1616</span>, <span class="j-key">"available"</span>: <span class="j-num">1526</span> <span class="j-brace">}</span>,
+      <span class="j-key">"ui_settings"</span>: <span class="j-brace">{</span> <span class="j-key">"color"</span>: <span class="j-str">"#FF9966"</span> <span class="j-brace">}</span>,
+      <span class="j-key">"code"</span>: <span class="j-str">"VIP"</span>
+    <span class="j-brace">}</span>,
+    <span class="j-brace">{</span>
+      <span class="j-key">"id"</span>: <span class="j-num">32715</span>, <span class="j-key">"name"</span>: <span class="j-str">"PISO 1"</span>,
+      <span class="j-key">"availability"</span>: <span class="j-brace">{</span> <span class="j-key">"total"</span>: <span class="j-num">3098</span>, <span class="j-key">"available"</span>: <span class="j-num">2915</span> <span class="j-brace">}</span>,
+      <span class="j-key">"ui_settings"</span>: <span class="j-brace">{</span> <span class="j-key">"color"</span>: <span class="j-str">"#FF6600"</span> <span class="j-brace">}</span>
+    <span class="j-brace">}</span>,
+    <span class="j-brace">{</span>
+      <span class="j-key">"id"</span>: <span class="j-num">32716</span>, <span class="j-key">"name"</span>: <span class="j-str">"PISO 2"</span>,
+      <span class="j-key">"availability"</span>: <span class="j-brace">{</span> <span class="j-key">"total"</span>: <span class="j-num">3973</span>, <span class="j-key">"available"</span>: <span class="j-num">3945</span> <span class="j-brace">}</span>,
+      <span class="j-key">"ui_settings"</span>: <span class="j-brace">{</span> <span class="j-key">"color"</span>: <span class="j-str">"#0099FF"</span> <span class="j-brace">}</span>
+    <span class="j-brace">}</span>,
+    <span class="j-brace">{</span>
+      <span class="j-key">"id"</span>: <span class="j-num">32717</span>, <span class="j-key">"name"</span>: <span class="j-str">"PISO 3"</span>,
+      <span class="j-key">"availability"</span>: <span class="j-brace">{</span> <span class="j-key">"total"</span>: <span class="j-num">1724</span>, <span class="j-key">"available"</span>: <span class="j-num">1704</span> <span class="j-brace">}</span>,
+      <span class="j-key">"ui_settings"</span>: <span class="j-brace">{</span> <span class="j-key">"color"</span>: <span class="j-str">"#0033CC"</span> <span class="j-brace">}</span>
+    <span class="j-brace">}</span>
+  <span class="j-brace">]</span>,
+  <span class="j-key">"sectors"</span>: <span class="j-brace">[</span>
+    <span class="j-brace">{</span> <span class="j-key">"id"</span>: <span class="j-num">224515</span>, <span class="j-key">"name"</span>: <span class="j-str">"Sector 316"</span>,
+      <span class="j-key">"price_types"</span>: <span class="j-brace">[{</span> <span class="j-key">"name"</span>: <span class="j-str">"PISO 3"</span>, <span class="j-key">"total"</span>: <span class="j-num">88</span>, <span class="j-key">"available"</span>: <span class="j-num">83</span> <span class="j-brace">}]</span> <span class="j-brace">}</span>,
+    <span class="j-brace">{</span> <span class="j-key">"id"</span>: <span class="j-num">224551</span>, <span class="j-key">"name"</span>: <span class="j-str">"Pista - B3"</span>,
+      <span class="j-key">"price_types"</span>: <span class="j-brace">[{</span> <span class="j-key">"name"</span>: <span class="j-str">"PISTA"</span>,  <span class="j-key">"total"</span>: <span class="j-num">10</span>,  <span class="j-key">"available"</span>: <span class="j-num">10</span>  <span class="j-brace">}]</span> <span class="j-brace">}</span>,
+    <span class="j-token">/* … 64 more sectors */</span>
+  <span class="j-brace">]</span>
+<span class="j-brace">}</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('.endpoint');
+  const links    = document.querySelectorAll('nav a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.4 });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

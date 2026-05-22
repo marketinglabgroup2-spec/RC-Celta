@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sessions — ONEBOX · RC Celta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --celeste:   #6cace4;
+      --green:     #2ea043;
+      --green-bg:  #0d2818;
+      --green-txt: #56d364;
+      --amber:     #9e6a03;
+      --amber-bg:  #2b1d00;
+      --amber-txt: #e3b341;
+      --red:       #da3633;
+      --red-bg:    #2d1117;
+      --red-txt:   #f85149;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Barlow', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-left h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .header-left p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.1rem;
+    }
+
+    /* ── Search ── */
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 380px;
+      min-width: 200px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    #search {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 1rem 0.6rem 2.5rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      color: var(--text);
+      transition: border-color 0.15s;
+    }
+
+    #search::placeholder { color: var(--muted); }
+    #search:focus { outline: none; border-color: var(--celeste); }
+
+    .result-count {
+      font-size: 0.8rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── Grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+      padding: 2rem;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+      cursor: default;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: #58a6ff44;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .card.hidden { display: none; }
+
+    /* Image */
+    .card-img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: #1e2430;
+      display: block;
+    }
+
+    .card-img-placeholder {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(135deg, #1e2430 0%, #1a2535 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 2rem;
+    }
+
+    /* Body */
+    .card-body {
+      padding: 1rem 1.1rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      flex: 1;
+    }
+
+    .card-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .meta-row svg { flex-shrink: 0; }
+
+    /* Footer row: price + availability */
+    .card-footer {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 0.6rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .price {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--celeste);
+    }
+
+    .price .price-label {
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 0.1rem;
+    }
+
+    /* Availability pill */
+    .avail-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.35rem;
+    }
+
+    .avail-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      letter-spacing: 0.02em;
+    }
+
+    .avail-green { background: var(--green-bg);  color: var(--green-txt); }
+    .avail-amber { background: var(--amber-bg);  color: var(--amber-txt); }
+    .avail-red   { background: var(--red-bg);    color: var(--red-txt);   }
+
+    /* Progress bar */
+    .avail-bar {
+      width: 80px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .avail-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+
+    .fill-green { background: var(--green-txt); }
+    .fill-amber { background: var(--amber-txt); }
+    .fill-red   { background: var(--red-txt);   }
+
+    /* Sold-out overlay */
+    .card.sold-out .card-img { filter: grayscale(1) opacity(0.4); }
+
+    .sold-out-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: var(--red-bg);
+      color: var(--red-txt);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+    }
+
+    /* ── Empty state ── */
+    #empty {
+      display: none;
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+
+    #empty svg { margin-bottom: 1rem; opacity: 0.4; }
+    #empty p { font-size: 1rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>ONEBOX Sessions</h1>
+    <p>Channel 2287 · <span id="total-count">21</span> matches</p>
+  </div>
+
+  <div class="search-wrap">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input id="search" type="search" placeholder="Search match or venue…" autocomplete="off" />
+  </div>
+
+  <span class="result-count" id="result-count"></span>
+</header>
+
+<div class="grid" id="grid">
+  <div id="empty">
+    <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <p>No matches found for your search.</p>
+  </div>
+</div>
+
+<script>
+const SESSIONS = [{"id":240895,"name":"NUMERADO","eventName":"* API NUMBERED EVENT","date":"2020-02-12T21:00:00+01:00","venue":"Estadio Saprissa","priceMin":10,"priceMax":50,"total":14959,"free":14372,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":249468,"name":"NUMERADO","eventName":"* API NUMBERED EVENT","date":"2020-11-25T15:00:00+01:00","venue":"Estadio Saprissa","priceMin":10,"priceMax":50,"total":14958,"free":14158,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/sesion/249468/177203_634020_1739950849300.jpg"},{"id":617439,"name":"NUMERADO diaria 44","eventName":"* API NUMBERED EVENT","date":"2025-07-17T12:00:00+02:00","venue":"Estadio Saprissa","priceMin":8,"priceMax":8,"total":17211,"free":17196,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/sesion/617439/235086_911226_1751532170008.jpg"},{"id":509945,"name":"NUMERADO diaria 44","eventName":"* API NUMBERED EVENT","date":"2026-03-29T12:00:00+02:00","venue":"Estadio Saprissa","priceMin":8,"priceMax":8,"total":17211,"free":16040,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/sesion/509945/227981_860237_1739951200209.jpg"},{"id":569823,"name":"NUMERADO diaria 44","eventName":"* API NUMBERED EVENT","date":"2026-03-31T12:00:00+02:00","venue":"Estadio Saprissa","priceMin":8,"priceMax":8,"total":17211,"free":16617,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/sesion/569823/227994_952677_1739952263015.jpg"},{"id":613473,"name":"NUMERADO diaria 45","eventName":"* API NUMBERED EVENT","date":"2026-03-31T12:00:00+02:00","venue":"Estadio Saprissa","priceMin":8,"priceMax":8,"total":17211,"free":16670,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/sesion/613473/234112_969368_1749117111739.jpg"},{"id":616004,"name":"NUMERADO diaria 46","eventName":"* API NUMBERED EVENT","date":"2026-04-01T12:00:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17139,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":616005,"name":"NUMERADO diaria 46","eventName":"* API NUMBERED EVENT","date":"2026-04-06T12:00:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17172,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":617422,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-04-07T10:00:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17195,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":617423,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-04-07T10:06:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17204,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":617424,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-04-07T10:12:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17211,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":617425,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-04-07T10:18:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17203,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":617426,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-04-07T10:24:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17204,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":617427,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-04-07T10:30:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17211,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":617428,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-04-07T10:36:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17209,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":617429,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-04-07T10:42:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17211,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":617430,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-04-07T10:48:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17211,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":617431,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-04-07T10:54:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17198,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":617432,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-04-07T11:00:00+02:00","venue":"Estadio Saprissa","priceMin":15,"priceMax":15,"total":17211,"free":17210,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":617433,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-04-07T11:06:00+02:00","venue":"Estadio Saprissa","priceMin":0,"priceMax":20,"total":17211,"free":17205,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"},{"id":695442,"name":"Multisesion","eventName":"* API NUMBERED EVENT","date":"2026-07-05T11:00:00+02:00","venue":"Palau Sant Jordi Recinto ejemplo","priceMin":0,"priceMax":0,"total":14959,"free":14946,"forSale":true,"soldOut":false,"img":"https://s3.amazonaws.com/onebox-repository/pre/1/657/evento/4587/175304_477248_1739950985999.jpg"}];
+
+function availClass(free, total) {
+  if (!total) return 'red';
+  const pct = free / total;
+  if (pct > 0.5) return 'green';
+  if (pct > 0.2) return 'amber';
+  return 'red';
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function formatTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatPrice(min, max) {
+  if (min === 0 && max === 0) return 'Free';
+  if (min === max) return `€${min}`;
+  return `€${min} – €${max}`;
+}
+
+function formatSeats(free, total) {
+  if (total === 0) return '—';
+  return `${free.toLocaleString()} / ${total.toLocaleString()}`;
+}
+
+function availLabel(free, total) {
+  if (!total) return 'No data';
+  const pct = free / total;
+  if (pct > 0.5) return 'Available';
+  if (pct > 0.2) return 'Filling up';
+  if (free === 0) return 'Sold out';
+  return 'Almost full';
+}
+
+function renderCards(sessions) {
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+
+  // Remove existing cards (keep empty state node)
+  grid.querySelectorAll('.card').forEach(c => c.remove());
+
+  const visible = sessions.filter(s => !s._hidden);
+  document.getElementById('result-count').textContent =
+    visible.length < SESSIONS.length ? `${visible.length} of ${SESSIONS.length}` : '';
+
+  if (visible.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  sessions.forEach(s => {
+    if (s._hidden) return;
+
+    const cls   = availClass(s.free, s.total);
+    const label = s.soldOut ? 'Sold out' : availLabel(s.free, s.total);
+    const fillPct = s.total ? Math.round((s.free / s.total) * 100) : 0;
+
+    const card = document.createElement('div');
+    card.className = 'card' + (s.soldOut ? ' sold-out' : '');
+    card.dataset.id = s.id;
+
+    card.innerHTML = `
+      <img class="card-img" src="${s.img}" alt="${s.name}"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+      <div class="card-img-placeholder" style="display:none">📅</div>
+
+      <div class="card-body">
+        <div class="card-name" title="${s.name}">${s.name}</div>
+
+        <div class="card-meta">
+          <div class="meta-row">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            ${formatDate(s.date)}&ensp;·&ensp;${formatTime(s.date)}
+          </div>
+          <div class="meta-row">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            ${s.venue}
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="price">
+            <span class="price-label">Price</span>
+            ${formatPrice(s.priceMin, s.priceMax)}
+          </div>
+
+          <div class="avail-pill">
+            ${s.soldOut
+              ? `<span class="sold-out-badge">Sold out</span>`
+              : `<span class="avail-badge avail-${cls}">${label} · ${formatSeats(s.free, s.total)}</span>`
+            }
+            <div class="avail-bar">
+              <div class="avail-bar-fill fill-${cls}" style="width:${fillPct}%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+}
+
+// Initial render
+renderCards(SESSIONS);
+
+// Search
+document.getElementById('search').addEventListener('input', function () {
+  const q = this.value.trim().toLowerCase();
+  SESSIONS.forEach(s => {
+    s._hidden = q && !s.name.toLowerCase().includes(q) && !s.venue.toLowerCase().includes(q);
+  });
+  renderCards(SESSIONS);
+});
+</script>
+</body>
+</html>
